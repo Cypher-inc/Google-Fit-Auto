@@ -90,7 +90,6 @@ from datetime import timedelta
 # This is a commonly used data source for steps from various fitness apps.
 STEP_DATA_SOURCE = "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps"
 
-# Define the time range for fetching data (e.g., the last 7 days).
 end_time = datetime.datetime.now()
 start_time = end_time - datetime.timedelta(days=7)
 
@@ -105,10 +104,7 @@ results = service.users().dataSources().datasets().get(
     datasetId=f'{start_time_ns}-{end_time_ns}'
 ).execute()
 
-# Print the fetched data.
 print(f"Step data for the last 7 days:")
-# The data is typically in 'point' field, each point has a 'value' field
-# and 'startTimeNanos' and 'endTimeNanos'.
 
 dtArr = []
 stepsArr = []
@@ -142,6 +138,8 @@ df['Day of week'] = df['Datetime'].dt.strftime("%A")
 df['Steps'] = stepsArr
 
 
+df.to_csv('stepsData.csv',index=False)
+
 df.groupby(['Month','Day'])['Steps'].sum()
 
 # ///////// Datetime is stored in UTC///////////
@@ -155,9 +153,8 @@ day_steps = dfGroupD.iloc[-1]
 week_steps = dfGroupW.iloc[-1]
 month_steps = dfGroupM.iloc[-1]
 
-# Create a friendly message
 message = (
-    f"Hey! 👟 Here's your step summary:\n\n"
+    f"Hi! Here's your step summary:\n\n"
     f"📅 Today ({df['Datetime'].dt.date.iloc[-1]}): {day_steps:,} steps\n"
     f"📅 This Week: {week_steps:,} steps\n"
     f"📆 This Month ({df['Datetime'].dt.strftime('%b').iloc[-1]}): {month_steps:,} steps\n\n"
@@ -165,8 +162,4 @@ message = (
 )
 
 print(message)
-# # #Code for sending msg to whatsapp
-# import pywhatkit
-
-# pywhatkit.sendwhatmsg_instantly("+918779010059", message)
 
