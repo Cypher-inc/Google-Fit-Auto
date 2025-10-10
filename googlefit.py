@@ -7,44 +7,81 @@ Original file is located at
     https://colab.research.google.com/drive/1Sgr08KrKQ-aQMvmxnXMGpFGRxvMqF8Fd
 """
 import os
+import json
 import pickle
-from google_auth_oauthlib.flow import Flow
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 
 SCOPES = ['https://www.googleapis.com/auth/fitness.activity.read']
-CREDENTIALS_FILE = './client_secrets.json'
-TOKEN_FILE = 'token.pkl'  # file to save access/refresh tokens
+CREDENTIALS_FILE = 'client_secrets.json'
+TOKEN_FILE = 'token.pkl'
+TOKEN_URI = "https://oauth2.googleapis.com/token"
 
-credentials = None
+def save_token(creds):
+    with open(TOKEN_FILE, 'wb') as f:
+        pickle.dump(creds, f)
 
-# Load saved credentials if they exist
-if os.path.exists(TOKEN_FILE):
-    with open(TOKEN_FILE, 'rb') as token:
-        credentials = pickle.load(token)
+def load_token():
+    if os.path.exists(TOKEN_FILE):
+        with open(TOKEN_FILE, 'rb') as f:
+            return pickle.load(f)
+    return None
 
-# If no valid credentials, run OAuth flow
-if not credentials or not credentials.valid:
-    if credentials and credentials.expired and credentials.refresh_token:
-        # Refresh expired credentials
+def creds_from_secrets_env():
+    gclient_json = os.getenv('GCLIENT_JSON')
+    refresh_token = os.getenv('GREFRESH_TOKEN')
+    if not (gclient_json and refresh_token):
+        return None
+
+    cfg = json.loads(gclient_json)
+    client_info = cfg.get('installed') or cfg.get('web') or {}
+    client_id = client_info.get('client_id')
+    client_secret = client_info.get('client_secret')
+    if not (client_id and client_secret):
+        return None
+
+    creds = Credentials(
+        token=None,
+        refresh_token=refresh_token,
+        token_uri=TOKEN_URI,
+        client_id=client_id,
+        client_secret=client_secret,
+        scopes=SCOPES
+    )
+    creds.refresh(Request())  # get access token
+    return creds
+
+def interactive_flow():
+    if not os.path.exists(CREDENTIALS_FILE):
+        return None
+    flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
+    return flow.run_console()
+
+# 1) Try existing token
+credentials = load_token()
+
+# 2) If no valid token, try env-based non-interactive (CI)
+if not credentials or not getattr(credentials, "valid", False):
+    if credentials and getattr(credentials, "expired", False) and getattr(credentials, "refresh_token", None):
         credentials.refresh(Request())
     else:
-        flow = Flow.from_client_secrets_file(CREDENTIALS_FILE, scopes=SCOPES)
-        flow.redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
-        auth_url, _ = flow.authorization_url(access_type='offline', include_granted_scopes='true')
-        print('Go to this URL and authorize access:')
-        print(auth_url)
-        code = input('Enter the authorization code: ')
-        flow.fetch_token(code=code)
-        credentials = flow.credentials
+        credentials = creds_from_secrets_env()
 
-    # Save the credentials for the next run
-    with open(TOKEN_FILE, 'wb') as token:
-        pickle.dump(credentials, token)
+# 3) Fallback to interactive local flow
+if not credentials or not getattr(credentials, "valid", False):
+    credentials = interactive_flow()
 
-# Build the Google Fit API service
+if not credentials:
+    raise SystemExit("No credentials available. Provide token.pkl, GCLIENT_JSON + GREFRESH_TOKEN, or client_secrets.json for interactive auth.")
+
+# Save token for future runs (safe in local dev / ephemeral CI workspace)
+save_token(credentials)
+
+# Build service
 service = build('fitness', 'v1', credentials=credentials)
-print('OAuth credentials set up successfully.')
+print("OAuth credentials ready.")
 
 import datetime
 from datetime import timedelta
@@ -81,7 +118,7 @@ if 'point' in results:
         start_time_point = datetime.datetime.fromtimestamp(int(point['startTimeNanos']) / 1e9).replace(microsecond=0)
         end_time_point = datetime.datetime.fromtimestamp(int(point['endTimeNanos']) / 1e9).replace(microsecond=0) 
         step_count = point['value'][0]['intVal']
-        print(f"  From {start_time_point} to {end_time_point}: {step_count} steps")
+        # print(f"  From {start_time_point} to {end_time_point}: {step_count} steps")
         dtArr.append(start_time_point)
         stepsArr.append(step_count)
 else:
