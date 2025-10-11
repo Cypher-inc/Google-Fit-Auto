@@ -4,3 +4,5 @@ PyWhatKit_DB.txt
 client_secrets.json
 token.pkl
 test.py
+stepsData.csv
+email_tester.py

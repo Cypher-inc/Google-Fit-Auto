@@ -154,12 +154,45 @@ week_steps = dfGroupW.iloc[-1]
 month_steps = dfGroupM.iloc[-1]
 
 message = (
-    f"Hi! Here's your step summary:\n\n"
+    f"Here's my step summary:\n\n"
     f"📅 Today ({df['Datetime'].dt.date.iloc[-1]}): {day_steps:,} steps\n"
     f"📅 This Week: {week_steps:,} steps\n"
     f"📆 This Month ({df['Datetime'].dt.strftime('%b').iloc[-1]}): {month_steps:,} steps\n\n"
-    "Keep moving and stay healthy! 💪"
 )
 
 print(message)
 
+import smtplib
+from email.message import EmailMessage
+
+
+GMAIL_USER = os.getenv('GMAIL_USER')
+GMAIL_SENDER = os.getenv('GMAIL_SENDER')
+GMAIL_APP_PASS = os.getenv('GMAIL_APP_PASS')
+
+
+def send_mail(to_addr):
+    content = f'''
+    <html>
+    <body>
+    <p>Hi, Dory 🐠</p>
+    <p>{message}</p>
+    <p style="margin-bottom: 0%;">By,</p>
+    <p style="margin-top: 0%;">Goldish 🐡</p>
+    </body>
+    </html>'''
+
+    msg = EmailMessage()
+    msg.add_alternative(content, subtype='html')
+    msg['Subject'] = 'Your Today\'s Steps Report'
+    msg['From'] = GMAIL_USER
+    msg['To'] = to_addr
+
+    server = smtplib.SMTP('smtp.gmail.com',587)
+    server.starttls()
+    server.login(GMAIL_USER,GMAIL_APP_PASS)
+    server.send_message(msg)
+    server.quit()
+    return 'message sent'
+
+send_mail([GMAIL_USER,GMAIL_SENDER])
