@@ -166,11 +166,6 @@ import smtplib
 from email.message import EmailMessage
 
 
-GMAIL_USER = os.getenv('GMAIL_USER')
-GMAIL_SENDER = os.getenv('GMAIL_SENDER')
-GMAIL_APP_PASS = os.getenv('GMAIL_APP_PASS')
-
-
 def send_mail(to_addr):
     content = f'''
     <html>
@@ -185,14 +180,14 @@ def send_mail(to_addr):
     msg = EmailMessage()
     msg.add_alternative(content, subtype='html')
     msg['Subject'] = 'Your Today\'s Steps Report'
-    msg['From'] = GMAIL_USER
+    msg['From'] = os.getenv('GMAIL_USER')
     msg['To'] = to_addr
 
     server = smtplib.SMTP('smtp.gmail.com',587)
     server.starttls()
-    server.login(GMAIL_USER,GMAIL_APP_PASS)
+    server.login(os.getenv('GMAIL_USER'),os.getenv('GMAIL_APP_PASS'))
     server.send_message(msg)
     server.quit()
     return 'message sent'
 
-send_mail([GMAIL_USER,GMAIL_SENDER])
+send_mail([os.getenv('GMAIL_USER'),os.getenv('GMAIL_SENDER')])
