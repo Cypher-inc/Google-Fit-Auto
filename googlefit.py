@@ -162,16 +162,30 @@ message = (
 
 print(message)
 
+
+
 import smtplib
 from email.message import EmailMessage
+from pretty_html_table import build_table
+import pandas as pd
 
+# Example dataframe from your variables
+stepData = {
+    "Your Activity": [f"Today ({df['Datetime'].dt.date.iloc[-1]})", "This Week", f"This Month ({df['Datetime'].dt.strftime('%b').iloc[-1]})"],
+    "Steps": [day_steps, week_steps, month_steps]
+}
+df_steps = pd.DataFrame(stepData)
+
+html_table = build_table(df_steps, 'blue_light')
 
 def send_mail(to_addr):
     content = f'''
     <html>
     <body>
-    <p>Hi, Dory 🐠</p>
-    <p>{message}</p>
+    <p>Hi Dory 🐠,</p>
+    </br>
+    <p>{html_table}</p>
+    </br>
     <p style="margin-bottom: 0%;">By,</p>
     <p style="margin-top: 0%;">Goldish 🐡</p>
     </body>
@@ -190,4 +204,4 @@ def send_mail(to_addr):
     server.quit()
     return 'message sent'
 
-send_mail([os.getenv('GMAIL_USER'),os.getenv('GMAIL_SENDER')])
+send_mail([os.getenv('GMAIL_USER'),os.getenv('GMAIL_RECEIVER')])
