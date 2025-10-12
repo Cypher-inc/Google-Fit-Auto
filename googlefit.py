@@ -201,7 +201,7 @@ def send_mail(to_addr):
     server.starttls()
     server.login(os.getenv('GMAIL_USER'),os.getenv('GMAIL_APP_PASS'))
     server.send_message(msg)
-    server.quit()
-    return 'message sent'
+    server.quit()   
+    print('message sent')
 
 send_mail([os.getenv('GMAIL_USER'),os.getenv('GMAIL_RECEIVER')])
