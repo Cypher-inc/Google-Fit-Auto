@@ -15,7 +15,7 @@ from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 
 SCOPES = ['https://www.googleapis.com/auth/fitness.activity.read']
-CREDENTIALS_FILE = 'client_secrets.json'
+CREDENTIALS_FILE = 'client_secrets_2.json'
 TOKEN_FILE = 'token.pkl'
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 
@@ -91,20 +91,19 @@ from datetime import timedelta
 STEP_DATA_SOURCE = "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps"
 
 end_time = datetime.datetime.now()
-start_time = end_time - datetime.timedelta(days=7)
-
-# Convert timestamps to nanoseconds, which is required by the Google Fit API.
-start_time_ns = int(start_time.timestamp() * 1e9)
 end_time_ns = int(end_time.timestamp() * 1e9)
+
+first_day = datetime.datetime(end_time.year, end_time.month, 1)
+first_day_ns = int(first_day.timestamp() * 1e9)
 
 # Fetch the step data from the Google Fit API.
 results = service.users().dataSources().datasets().get(
     userId='me',
     dataSourceId=STEP_DATA_SOURCE,
-    datasetId=f'{start_time_ns}-{end_time_ns}'
+    datasetId=f'{first_day_ns}-{end_time_ns}'
 ).execute()
 
-print(f"Step data for the last 7 days:")
+
 
 dtArr = []
 stepsArr = []
@@ -112,7 +111,7 @@ stepsArr = []
 if 'point' in results:
     for point in results['point']:
         start_time_point = datetime.datetime.fromtimestamp(int(point['startTimeNanos']) / 1e9).replace(microsecond=0)
-        end_time_point = datetime.datetime.fromtimestamp(int(point['endTimeNanos']) / 1e9).replace(microsecond=0) 
+        end_time_point = datetime.datetime.fromtimestamp(int(point['endTimeNanos']) / 1e9).replace(microsecond=0)
         step_count = point['value'][0]['intVal']
         # print(f"  From {start_time_point} to {end_time_point}: {step_count} steps")
         dtArr.append(start_time_point)
@@ -132,7 +131,8 @@ df['Month'] = df['Datetime'].dt.month
 df['Day'] = df['Datetime'].dt.day
 df['Hour'] = df['Datetime'].dt.hour
 df['Minute'] = df['Datetime'].dt.minute
-df['Week'] = df['Datetime'].dt.isocalendar().week
+# df['Week'] = df['Datetime'].dt.isocalendar().week
+df['Week'] = df['Datetime'].dt.strftime("%U")
 df['Day of week'] = df['Datetime'].dt.strftime("%A")
 # /////////Adding steps//////////////
 df['Steps'] = stepsArr
@@ -159,6 +159,9 @@ message = (
     f"📅 This Week: {week_steps:,} steps\n"
     f"📆 This Month ({df['Datetime'].dt.strftime('%b').iloc[-1]}): {month_steps:,} steps\n\n"
 )
+
+print(message)
+
 
 print(message)
 
