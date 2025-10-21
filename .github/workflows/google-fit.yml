@@ -3,14 +3,16 @@ name: Run Google Fit Script
 on:
   workflow_dispatch:  # allows manual run
   schedule:
-    # Run daily at 10:30 PM IST
-    - cron: "0 17 * * *"
+    # Run every hour
+    - cron: "0 * * * *"
+    # # Run daily at 10:30 PM IST
+    # - cron: "0 17 * * *"
 
-    # Run daily at 11:30 PM IST
-    - cron: "0 18 * * *"
+    # # Run daily at 11:30 PM IST
+    # - cron: "0 18 * * *"
 
-    # Run daily at 12:30 PM IST
-    - cron: "0 19 * * *"
+    # # Run daily at 12:30 PM IST
+    # - cron: "0 19 * * *"
 
 jobs:
   google-fit:
