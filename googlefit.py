@@ -187,12 +187,12 @@ def send_mail(to_addr):
     content = f'''
     <html>
     <body>
-    <p>Hi Dory 🐠,</p>
+    <p>Hi Master 🫡,</p>
     </br>
     <p>{html_table}</p>
     </br>
     <p style="margin-bottom: 0%;">By,</p>
-    <p style="margin-top: 0%;">Goldish 🐡</p>
+    <p style="margin-top: 0%;">Goldish 🐶</p>
     </body>
     </html>'''
 
