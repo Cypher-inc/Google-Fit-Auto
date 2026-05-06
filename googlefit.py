@@ -187,18 +187,18 @@ def send_mail(to_addr):
     content = f'''
     <html>
     <body>
-    <p>Hi Master 🫡,</p>
+    <p>Hi Master 👋,</p>
     </br>
     <p>{html_table}</p>
     </br>
     <p style="margin-bottom: 0%;">By,</p>
-    <p style="margin-top: 0%;">Goldish 🐶</p>
+    <p style="margin-top: 0%;">Husky 🐶</p>
     </body>
     </html>'''
 
     msg = EmailMessage()
     msg.add_alternative(content, subtype='html')
-    msg['Subject'] = 'Your Today\'s Steps Report'
+    msg['Subject'] = 'Your Pet's Today\'s Steps Report'
     msg['From'] = os.getenv('GMAIL_USER')
     msg['To'] = to_addr
 
