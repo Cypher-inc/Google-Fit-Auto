@@ -198,7 +198,7 @@ def send_mail(to_addr):
 
     msg = EmailMessage()
     msg.add_alternative(content, subtype='html')
-    msg['Subject'] = 'Your Pet's Today\'s Steps Report'
+    msg['Subject'] = 'Your Pet\'s Today\'s Steps Report'
     msg['From'] = os.getenv('GMAIL_USER')
     msg['To'] = to_addr
 
